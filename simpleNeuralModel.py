@@ -29,6 +29,11 @@ def simpleNeuralDynamics(weightMatrix,inputExt=0,noiseVar=1,
     
     weightMatrix                      : (N x N) matrix indicating the synaptic strength from
                                         neuron j to neuron i
+    inputExt (0)                      : If given a constant or list of length N, add this as
+                                          a constant external input.
+                                        If given an array of shape (# timepoints)x(N),
+                                          add external current as an input that
+                                          varies over time.  (# timepoints = t_final/delta_t)
     initialState (None)               : If given a list of length N, start the system in the
                                         given state.  If None, initial state defaults to
                                         all zeros.
@@ -36,8 +41,6 @@ def simpleNeuralDynamics(weightMatrix,inputExt=0,noiseVar=1,
     N = len(weightMatrix)
     # make sure the weight matrix is square
     assert(len(weightMatrix[0])==N)
-    # make sure the input is either a simple number or length-N
-    assert(np.shape(inputExt)==() or np.shape(inputExt)==(N,))
     
     # set up the initial state
     if initialState is None:
@@ -49,12 +52,23 @@ def simpleNeuralDynamics(weightMatrix,inputExt=0,noiseVar=1,
     times = np.arange(0,tFinal+deltat,deltat)
     stateList = [initialState,]
     
+    # set up the external input, possibly varying as a function of time
+    if np.shape(inputExt) == (len(times)-1,N):
+        # input is varying in time
+        inputExtVsT = inputExt
+    elif np.shape(inputExt) == () or np.shape(inputExt) == (N,):
+        # input is constant in time
+        inputExtVsT = [ inputExt for t in times[:-1] ]
+    else:
+        raise Exception("Unrecognized form of inputExt")
+        
+    
     # run the simulation (we already have the state for t=0)
-    for time in times[1:]:
+    for time,inputCurrent in zip(times[1:],inputExtVsT):
         currentState = stateList[-1]
         
         # compute deltax for current timestep
-        deterministicPart = deltat*( inputExt - currentState + np.dot(weightMatrix,np.tanh(currentState)) )
+        deterministicPart = deltat*( inputCurrent - currentState + np.dot(weightMatrix,np.tanh(currentState)) )
         stochasticPart = np.sqrt(deltat*noiseVar)*np.random.normal(size=N)
         deltax = deterministicPart + stochasticPart
         
