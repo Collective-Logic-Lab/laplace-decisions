@@ -59,7 +59,7 @@ def interpolated_state(rates_series,k=1):
 class laplace_network:
     
     def __init__(self,Npopulation,J=1,kernel_width=2,boundary_input=100,
-        num_inputs=5,include_bump=True,J_edge_bump=1):
+        num_inputs=5,include_bump=True,J_edge_bump=1,J_bump_edge=1):
         """
         Create 1-D line of units with nearest-neighbor interactions and fixed
         boundary conditions implemented by large fields at the ends.
@@ -73,6 +73,8 @@ class laplace_network:
         include_bump   : If True, include N additional neurons that encode the derivative
                          of the edge neurons.
         J_edge_bump    : scale of interaction strength of edge -> bump connections
+        J_bump_edge    : scale of interaction strength of bump -> edge connections
+                         (can be a scalar or a vector of length Npopulation)
         """
         self.Npopulation = Npopulation
         self.J = J
@@ -92,13 +94,18 @@ class laplace_network:
             self.edge_bump_Jmat = J_edge_bump * derivative_interaction_matrix(Npopulation)
             
             # set interaction matrix for bump neurons -> edge neurons
-            self.bump_edge_Jmat = np.zeros((Npopulation,Npopulation))
+            self.bump_edge_Jmat = np.diag(J_bump_edge * np.ones(Npopulation))
         
             # construct full interaction matrix
             self.Jmat = np.block([[self.edge_Jmat, self.bump_edge_Jmat],
                                   [self.edge_bump_Jmat, self.bump_Jmat]])
+                                  
+            # also store interaction matrix that does not include feedback from bump to edge
+            self.Jmat_no_feedback = np.block([[self.edge_Jmat, np.zeros((Npopulation,Npopulation))],
+                                              [self.edge_bump_Jmat, self.bump_Jmat]])
         else:
             self.Jmat = self.edge_Jmat
+            self.Jmat_no_feedback = self.edge_Jmat
         
         self.Ntotal = len(self.Jmat)
         
@@ -111,6 +118,10 @@ class laplace_network:
     def find_edge_state(self,center,method='translate'):
         """
         Find stationary state (fixed point) that looks like an edge at the given location
+        within the "edge" neurons.
+        
+        If the network includes "bump" neurons, feedback from the bump neurons to the edge
+        neurons is neglected here.
 
         center                    : desired center location of edge
         method ('translate')      : If 'translate', first find the edge fixed point numerically
@@ -137,7 +148,7 @@ class laplace_network:
                                                 np.zeros(self.Npopulation)])
         else:
             initialGuessState = initialGuessState_edge
-        fp_initial = simpleNeuralModel.findFixedPoint(self.Jmat,
+        fp_initial = simpleNeuralModel.findFixedPoint(self.Jmat_no_feedback,
                                                       initialGuessState,
                                                       inputExt=self.inputExt)
         
