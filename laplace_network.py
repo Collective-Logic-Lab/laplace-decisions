@@ -68,7 +68,8 @@ class laplace_network:
                          (if including bump neurons, total number of neurons is 2N)
         J              : scale of interaction strength among nearby neighbors
         kernel_width   : width of Gaussian kernel for interactions
-        boundary_input : field setting boundary conditions (positive on left end and negative on right end)
+        boundary_input : field setting boundary conditions (negative on left end
+                         and positive on right end)
         num_inputs     : number of fixed input nodes at each end of the edge neurons
         include_bump   : If True, include N additional neurons that encode the derivative
                          of the edge neurons.
@@ -111,8 +112,8 @@ class laplace_network:
         
         # set external inputs to edge neurons
         inputExt = np.zeros(self.Ntotal)
-        inputExt[0:num_inputs] = boundary_input
-        inputExt[self.Npopulation-num_inputs:self.Npopulation] = -boundary_input
+        inputExt[0:num_inputs] = -boundary_input
+        inputExt[self.Npopulation-num_inputs:self.Npopulation] = boundary_input
         self.inputExt = inputExt
         
     def find_edge_state(self,center,method='translate'):
@@ -142,7 +143,7 @@ class laplace_network:
         # find edge state numerically
         # TO DO: should the edge width be equal to the kernel width? (seems to work...)
         width = self.kernel_width
-        initialGuessState_edge = -(np.arange(0,self.Npopulation)-initial_location)/width
+        initialGuessState_edge = (np.arange(0,self.Npopulation)-initial_location)/width
         if self.include_bump:
             initialGuessState = np.concatenate([initialGuessState_edge,
                                                 np.zeros(self.Npopulation)])
