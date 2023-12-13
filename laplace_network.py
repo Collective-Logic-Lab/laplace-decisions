@@ -169,12 +169,32 @@ class laplace_network:
             shift = center - initial_actual_location
             fp_initial_spline = interpolated_state(fp_initial)
             # set up range of locations that will be overwritten
-            n_min = max(fixed_end_width,int(np.ceil(fixed_end_width+shift)))
+            n_min = max(fixed_end_width,
+                        fixed_end_width+int(np.ceil(shift)))
             n_max = min(self.Npopulation-fixed_end_width,
-                        int(np.floor(self.Npopulation-fixed_end_width+shift)))
+                        self.Npopulation-fixed_end_width+int(np.floor(shift)))
             n_vals = range(n_min,n_max)
             # overwrite with the shifted edge
             fp[n_vals] = fp_initial_spline(n_vals-shift)
+            
+            if self.include_bump:
+                # also shift states of bump neurons in a similar way
+                
+                # start by keeping the states of the end inputs plus padding
+                # of 2*kernel_width fixed, and with zeros everywhere in between
+                n_min_middle_bump = self.Npopulation+fixed_end_width
+                n_max_middle_bump = 2*self.Npopulation-fixed_end_width
+                n_vals_middle_bump = range(n_min_middle_bump,n_max_middle_bump)
+                fp[n_vals_middle_bump] = np.zeros_like(n_vals_middle_bump)
+                
+                # now paste the interpolated bump in the new location
+                n_min_bump = max(self.Npopulation+fixed_end_width,
+                                 self.Npopulation+fixed_end_width+int(np.ceil(shift)))
+                n_max_bump = min(2*self.Npopulation-fixed_end_width,
+                                 2*self.Npopulation-fixed_end_width+int(np.floor(shift)))
+                n_vals_bump = range(n_min_bump,n_max_bump)
+                # overwrite with the shifted bump
+                fp[n_vals_bump] = fp_initial_spline(n_vals_bump-shift)
         else:
             fp = fp_initial
         
