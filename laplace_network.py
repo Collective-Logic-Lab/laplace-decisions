@@ -38,6 +38,36 @@ def derivative_interaction_matrix(N):
     mat[0] = np.zeros(N)
     mat[N-1] = np.zeros(N)
     return mat
+    
+def interaction_matrix_from_kernel(discreteKernel,N,normed=True):
+    """
+    Takes a 1D list specifying the shape of an interaction kernel and produces an
+    interaction matrix for neurons lying along a 1D space.
+    
+    The kernel is assumed to be zero outside of the range [-N/2,N/2].
+    
+    discreteKernel       : Should have an odd length <= N.  The kernel is centered on the
+                           middle element (index (len(discreteKernel)-1)/2).
+    N                    : The number of neurons (dimension of the output matrix is NxN)
+    normed (True)        : If True, each row is transformed by absolute value and normalized
+                           to sum to 1.
+    """
+    Nk = len(discreteKernel)
+    assert(Nk%2==1) # discreteKernel should have odd length
+    assert(Nk <= N) # discreteKernel should have length less than or equal to N
+    mat = np.zeros((N,N))
+    
+    # copy in the appropriate part of the kernel for each row
+    for i in range(N):
+        matIndexMin = max(0,i-(Nk-1)//2)
+        matIndexMax = min(i+Nk-(Nk-1)//2,N)
+        kIndexMin = 0 + max(0,matIndexMin - (i-(Nk-1)//2))
+        kIndexMax = Nk - max(0,i+Nk-(Nk-1)//2 - N)
+        mat[i,matIndexMin:matIndexMax] = discreteKernel[kIndexMin:kIndexMax]
+        
+    if normed:
+        mat = [ abs(row)/np.sum(abs(row)) for row in mat ] # NOTE: TRYING FORCING EVERYTHING POSITIVE
+    return np.array(mat)
 
 def find_edge_location(rates_series,k=1):
     """
