@@ -17,7 +17,7 @@ import scipy.optimize as opt
 import pandas as pd
 
 def simpleNeuralDynamics(weightMatrix,inputExt=0,noiseVar=1,
-    tFinal=10,deltat=1e-3,initialState=None):
+    tFinal=10,deltat=1e-3,initialState=None,nonlinearity=np.tanh):
     """
     Simulates the following stochastic process:
     
@@ -37,6 +37,7 @@ def simpleNeuralDynamics(weightMatrix,inputExt=0,noiseVar=1,
     initialState (None)               : If given a list of length N, start the system in the
                                         given state.  If None, initial state defaults to
                                         all zeros.
+    nonlinearity (np.tanh)            : A function taking neural states x to synaptic currents
     """
     N = len(weightMatrix)
     # make sure the weight matrix is square
@@ -68,7 +69,7 @@ def simpleNeuralDynamics(weightMatrix,inputExt=0,noiseVar=1,
         currentState = stateList[-1]
         
         # compute deltax for current timestep
-        deterministicPart = deltat*( inputCurrent - currentState + np.dot(weightMatrix,np.tanh(currentState)) )
+        deterministicPart = deltat*( inputCurrent - currentState + np.dot(weightMatrix,nonlinearity(currentState)) )
         stochasticPart = np.sqrt(deltat*noiseVar)*np.random.normal(size=N)
         deltax = deterministicPart + stochasticPart
         
@@ -89,6 +90,8 @@ def allToAllNetworkAdjacency(N):
 def findFixedPoint(weightMatrix,initialGuessState,inputExt=0):
     """
     Find a fixed point of the deterministic part of dynamics
+    
+    Assumes nonlinearity = tanh
     """
     N = len(weightMatrix)
     # make sure the input is either a simple number or length-N

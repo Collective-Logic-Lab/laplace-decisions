@@ -59,7 +59,8 @@ def interpolated_state(rates_series,k=1):
 class laplace_network:
     
     def __init__(self,Npopulation,J=1,kernel_width=2,boundary_input=100,
-        num_inputs=5,include_bump=True,J_edge_bump=1,J_bump_edge=1):
+        num_inputs=5,include_bump=True,J_edge_bump=1,J_bump_edge=1,
+        nonlinearity=np.tanh):
         """
         Create 1-D line of units with nearest-neighbor interactions and fixed
         boundary conditions implemented by large fields at the ends.
@@ -76,6 +77,8 @@ class laplace_network:
         J_edge_bump    : scale of interaction strength of edge -> bump connections
         J_bump_edge    : scale of interaction strength of bump -> edge connections
                          (can be a scalar or a vector of length Npopulation)
+        nonlinearity   : Function taking neural states to synaptic currents.
+                         Default is np.tanh.  See simpleNeuralModel.
         """
         self.Npopulation = Npopulation
         self.J = J
@@ -83,6 +86,7 @@ class laplace_network:
         self.boundary_input = boundary_input
         self.num_inputs = num_inputs
         self.include_bump = include_bump
+        self.nonlinearity = nonlinearity
         
         # set interaction matrix for edge neurons -> edge neurons
         self.edge_Jmat = J * gaussian_kernel_matrix(Npopulation,kernel_width)
@@ -231,4 +235,5 @@ class laplace_network:
                                                       noiseVar=noise_var,
                                                       tFinal=t_final,
                                                       initialState=initial_state,
-                                                      deltat=delta_t)
+                                                      deltat=delta_t,
+                                                      nonlinearity=self.nonlinearity)
