@@ -150,7 +150,7 @@ class laplace_network:
         inputExt[self.Npopulation-num_inputs:self.Npopulation] = boundary_input
         self.inputExt = inputExt
         
-    def find_edge_state(self,center,method='translate'):
+    def find_edge_state(self,center,initial_guess_edge=None,method='translate'):
         """
         Find stationary state (fixed point) that looks like an edge at the given location
         within the "edge" neurons.
@@ -159,6 +159,10 @@ class laplace_network:
         neurons is neglected here.
 
         center                    : desired center location of edge
+        initial_guess_edge (None) : Optionally give an initial guess for the state of edge
+                                    neurons in the edge state.  If None, a default is used.
+                                    (The default is designed to work with the standard Gaussian
+                                    interaction kernel.)
         method ('translate')      : If 'translate', first find the edge fixed point numerically
                                     in the middle of the network, then interpolate and translate
                                     to the desired position.  Can be more numerically stable when
@@ -174,18 +178,23 @@ class laplace_network:
         else:
             raise Exception('Unrecognized method: {}'.format(method))
         
-        # find edge state numerically
-        # TO DO: should the edge width be equal to the kernel width? (seems to work...)
-        width = self.kernel_width
-        initialGuessState_edge = (np.arange(0,self.Npopulation)-initial_location)/width
+        # set initial guess state
+        if initial_guess_edge is None:
+            # TO DO: should the edge width be equal to the kernel width? (seems to work...)
+            width = self.kernel_width
+            initial_guess_edge = (np.arange(0,self.Npopulation)-initial_location)/width
         if self.include_bump:
-            initialGuessState = np.concatenate([initialGuessState_edge,
+            initialGuessState = np.concatenate([initial_guess_edge,
                                                 np.zeros(self.Npopulation)])
         else:
-            initialGuessState = initialGuessState_edge
+            initialGuessState = initial_guess_edge
+        assert(np.shape(initialGuessState)==(self.Ntotal,))
+            
+        # find edge state numerically
         fp_initial = simpleNeuralModel.findFixedPoint(self.Jmat_no_feedback,
                                                       initialGuessState,
-                                                      inputExt=self.inputExt)
+                                                      inputExt=self.inputExt,
+                                                      nonlinearity=self.nonlinearity)
         
         # if requested, move the edge to the desired location
         if method=='translate':

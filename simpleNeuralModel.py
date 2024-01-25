@@ -87,17 +87,15 @@ def simpleNeuralDynamics(weightMatrix,inputExt=0,noiseVar=1,
 def allToAllNetworkAdjacency(N):
     return 1 - np.eye(N)
 
-def findFixedPoint(weightMatrix,initialGuessState,inputExt=0):
+def findFixedPoint(weightMatrix,initialGuessState,inputExt=0,nonlinearity=np.tanh):
     """
     Find a fixed point of the deterministic part of dynamics
-    
-    Assumes nonlinearity = tanh
     """
     N = len(weightMatrix)
     # make sure the input is either a simple number or length-N
     assert(np.shape(inputExt)==() or np.shape(inputExt)==(N,))
     
-    deterministicDeltaX = lambda x: inputExt - x + np.dot(weightMatrix,np.tanh(x))
+    deterministicDeltaX = lambda x: inputExt - x + np.dot(weightMatrix,nonlinearity(x))
     sol = opt.root(deterministicDeltaX,initialGuessState)
     return sol.x
 
