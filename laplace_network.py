@@ -65,7 +65,7 @@ def interaction_matrix_from_kernel(discreteKernel,N,normed=True):
         mat[i,matIndexMin:matIndexMax] = discreteKernel[kIndexMin:kIndexMax]
         
     if normed:
-        mat = [ row/np.sum(row) for row in mat ] 
+        mat = [ row/np.sum(row) for row in mat ]
     return np.array(mat)
 
 def find_edge_location(rates_series,k=1):
@@ -89,7 +89,7 @@ class laplace_network:
     
     def __init__(self,Npopulation,J=1,kernel_width=2,boundary_input=100,
         num_inputs=5,include_bump=True,J_edge_bump=1,J_bump_edge=1,
-        nonlinearity=np.tanh):
+        nonlinearity=np.tanh,sigma=1):
         """
         Create 1-D line of units with nearest-neighbor interactions and fixed
         boundary conditions implemented by large fields at the ends.
@@ -108,6 +108,7 @@ class laplace_network:
                          (can be a scalar or a vector of length Npopulation)
         nonlinearity   : Function taking neural states to synaptic currents.
                          Default is np.tanh.  See simpleNeuralModel.
+        sigma          : Scale of nonlinearity function.  See simpleNeuralModel.
         """
         self.Npopulation = Npopulation
         self.J = J
@@ -116,6 +117,7 @@ class laplace_network:
         self.num_inputs = num_inputs
         self.include_bump = include_bump
         self.nonlinearity = nonlinearity
+        self.sigma = sigma
         
         # set interaction matrix for edge neurons -> edge neurons
         self.edge_Jmat = J * gaussian_kernel_matrix(Npopulation,kernel_width)
@@ -193,7 +195,8 @@ class laplace_network:
         fp_initial = simpleNeuralModel.findFixedPoint(self.Jmat_no_feedback,
                                                       initialGuessState,
                                                       inputExt=self.inputExt,
-                                                      nonlinearity=self.nonlinearity)
+                                                      nonlinearity=self.nonlinearity,
+                                                      sigma=self.sigma)
         
         # if requested, move the edge to the desired location
         if method=='translate':
@@ -274,4 +277,5 @@ class laplace_network:
                                                       tFinal=t_final,
                                                       initialState=initial_state,
                                                       deltat=delta_t,
-                                                      nonlinearity=self.nonlinearity)
+                                                      nonlinearity=self.nonlinearity,
+                                                      sigma=self.sigma)

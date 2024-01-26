@@ -17,11 +17,11 @@ import scipy.optimize as opt
 import pandas as pd
 
 def simpleNeuralDynamics(weightMatrix,inputExt=0,noiseVar=1,
-    tFinal=10,deltat=1e-3,initialState=None,nonlinearity=np.tanh):
+    tFinal=10,deltat=1e-3,initialState=None,nonlinearity=np.tanh,sigma=1):
     """
     Simulates the following stochastic process:
     
-    dx_i / dt = inputExt - x_i + sum_j weightMatrix_{i,j} tanh(x_j) + xi
+    dx_i / dt = inputExt - x_i + sum_j weightMatrix_{i,j} tanh(x_j/sigma_{i,j}) + xi
     
     where xi is uncorrelated Gaussian noise with variance 'noiseVar' per unit time.
     
@@ -38,10 +38,18 @@ def simpleNeuralDynamics(weightMatrix,inputExt=0,noiseVar=1,
                                         given state.  If None, initial state defaults to
                                         all zeros.
     nonlinearity (np.tanh)            : A function taking neural states x to synaptic currents
+    sigma (1)                         : Parameter defining the scale over which the nonlinear
+                                        function acts.  Given a single number, this is treated
+                                        as a constant over all interactions.  Given a matrix
+                                        of shape (N x N), this specifies sigma individually for
+                                        each interaction.
     """
     N = len(weightMatrix)
     # make sure the weight matrix is square
     assert(len(weightMatrix[0])==N)
+    
+    # make sure sigma has the right shape
+    assert(np.shape(sigma) == () or np.shape(sigma) == (N,N) )
     
     # set up the initial state
     if initialState is None:
@@ -69,7 +77,12 @@ def simpleNeuralDynamics(weightMatrix,inputExt=0,noiseVar=1,
         currentState = stateList[-1]
         
         # compute deltax for current timestep
-        deterministicPart = deltat*( inputCurrent - currentState + np.dot(weightMatrix,nonlinearity(currentState)) )
+        if np.shape(sigma) == (N,N):
+            scaledStates = np.tile(currentState,(N,1))/sigma
+            synapticCurrent = np.sum(weightMatrix * nonlinearity(scaledStates),axis=1)
+        else: # faster calculation for constant sigma
+            synapticCurrent = np.dot(weightMatrix,nonlinearity(currentState/sigma))
+        deterministicPart = deltat*( inputCurrent - currentState + synapticCurrent )
         stochasticPart = np.sqrt(deltat*noiseVar)*np.random.normal(size=N)
         deltax = deterministicPart + stochasticPart
         
@@ -87,7 +100,7 @@ def simpleNeuralDynamics(weightMatrix,inputExt=0,noiseVar=1,
 def allToAllNetworkAdjacency(N):
     return 1 - np.eye(N)
 
-def findFixedPoint(weightMatrix,initialGuessState,inputExt=0,nonlinearity=np.tanh):
+def findFixedPoint(weightMatrix,initialGuessState,inputExt=0,nonlinearity=np.tanh,sigma=1):
     """
     Find a fixed point of the deterministic part of dynamics
     """
@@ -95,7 +108,10 @@ def findFixedPoint(weightMatrix,initialGuessState,inputExt=0,nonlinearity=np.tan
     # make sure the input is either a simple number or length-N
     assert(np.shape(inputExt)==() or np.shape(inputExt)==(N,))
     
-    deterministicDeltaX = lambda x: inputExt - x + np.dot(weightMatrix,nonlinearity(x))
+    if np.shape(sigma) == (N,N):
+        deterministicDeltaX = lambda x: inputExt - x + np.sum(weightMatrix * nonlinearity(np.tile(x,(N,1))/sigma),axis=1)
+    else: # simpler in case of constant sigma
+        deterministicDeltaX = lambda x: inputExt - x + np.dot(weightMatrix,nonlinearity(x/sigma))
     sol = opt.root(deterministicDeltaX,initialGuessState)
     return sol.x
 
