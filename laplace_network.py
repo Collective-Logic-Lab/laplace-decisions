@@ -49,8 +49,7 @@ def interaction_matrix_from_kernel(discreteKernel,N,normed=True):
     discreteKernel       : Should have an odd length <= N.  The kernel is centered on the
                            middle element (index (len(discreteKernel)-1)/2).
     N                    : The number of neurons (dimension of the output matrix is NxN)
-    normed (True)        : If True, each row is transformed by absolute value and normalized
-                           to sum to 1.
+    normed (True)        : If True, each row is normalized to sum to 1.
     """
     Nk = len(discreteKernel)
     assert(Nk%2==1) # discreteKernel should have odd length
@@ -66,7 +65,7 @@ def interaction_matrix_from_kernel(discreteKernel,N,normed=True):
         mat[i,matIndexMin:matIndexMax] = discreteKernel[kIndexMin:kIndexMax]
         
     if normed:
-        mat = [ abs(row)/np.sum(abs(row)) for row in mat ] # NOTE: TRYING FORCING EVERYTHING POSITIVE
+        mat = [ row/np.sum(row) for row in mat ] 
     return np.array(mat)
 
 def find_edge_location(rates_series,k=1):
