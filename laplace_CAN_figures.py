@@ -37,7 +37,7 @@ def translation_simulation_plot(net,states,
     plt.subplot(4,1,1)
     for t in times:
         plt.plot(states.loc[t]['Neuron 0':'Neuron {}'.format(net.Npopulation-1)],
-                 '.-',label="t = {}".format(int(t)),lw=1,ms=3)
+                 '.-',label="$t$ = {}".format(int(t)),lw=1,ms=3)
     #plt.hlines(0,0,50,color='k',lw=0.5)
     #plt.xlabel('Neural unit')
     plt.ylabel('State,\nedge neurons')
@@ -52,7 +52,7 @@ def translation_simulation_plot(net,states,
     for t in times:
         plt.plot(
             states.loc[t]['Neuron {}'.format(net.Npopulation):'Neuron {}'.format(2*net.Npopulation-1)],
-                 '.-',label="t = {}".format(t),lw=1,ms=3)
+                 '.-',label="$t$ = {}".format(t),lw=1,ms=3)
     #plt.hlines(0,0,50,color='k',lw=0.5)
     #plt.xlabel('Neural unit')
     plt.ylabel('State,\nbump neurons')
