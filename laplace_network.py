@@ -85,6 +85,64 @@ def interpolated_state(rates_series,k=1):
     ppoly = scipy.interpolate.PPoly.from_spline(tck)
     return ppoly
 
+# define the shapes of asymmetric edges and bumps we want in order
+# to get exponential decay of individual neurons over time
+
+def asymmetricEdgeRates(n,t,delta_z=1,n_0=10,t_0=1):
+    return np.exp( -(t/t_0)*np.exp(-delta_z*(n-n_0)+np.log(np.log(2))) )
+
+def asymmetricBumpRates(n,t,delta_z=1,n_0=10,t_0=1):
+    return (t/t_0)*asymmetricEdgeRates(
+                n,t,delta_z=delta_z,n_0=n_0,t_0=t_0)*delta_z/np.exp(delta_z*(n-n_0))
+
+def asymmetric_edge_Jmat_with_shift(edge_shift,Npopulation,J,delta_z):
+    """
+    Returns edge-edge interaction matrix designed to produce an asymmetric edge, with
+    a shift along n of edge_shift.
+
+    Used by zero_velocity_asymmetric_edge_Jmat.
+    """
+    t_0 = 1 # this value shouldn't matter; just needs to be nonzero
+    kernel = [asymmetricBumpRates(Npopulation-10-n,t_0,
+                    delta_z=delta_z,n_0=(Npopulation-10)/2-edge_shift,t_0=t_0) for n in range(Npopulation-10+1)]
+    return J*interaction_matrix_from_kernel(kernel,Npopulation)
+    
+def asymmetric_edge_one_step_velocity(edge_Jmat,sigma_edge,Npopulation,J,delta_z,nonlinearity):
+    """
+    Change in position of the asymmetric edge after going once through the synaptic
+    nonlinearity and given interaction matrix.
+    """
+    t_0 = 1 # this value shouldn't matter; just needs to be nonzero
+    n_0 = Npopulation/2 # this value shouldn't matter; just needs to be far from endpoints
+    edge_state = J*(2*asymmetricEdgeRates(np.arange(0,Npopulation),t_0,delta_z=delta_z,n_0=n_0,t_0=t_0)-1)
+    edge_synaptic_out = nonlinearity(edge_state/sigma_edge)
+    corresponding_steady_state = np.dot(edge_Jmat,edge_synaptic_out)
+    steady_state_n_bar = np.sort(abs(find_edge_location(corresponding_steady_state)))[0]
+    return steady_state_n_bar - n_0
+    
+def find_zero_velocity_asymmetric_edge_shift(sigma_edge,Npopulation,J,delta_z,nonlinearity):
+    """
+    Find interaction matrix edge shift for an asymmetric edge with zero velocity under
+    the dynamics with given sigma_edge.
+
+    Note: sigma_edge = 0 should correspond to zero velocity with edge shift = 0.
+    """
+    vel_sq = lambda edge_shift: asymmetric_edge_one_step_velocity(
+                asymmetric_edge_Jmat_with_shift(edge_shift,Npopulation,J,delta_z),
+                sigma_edge,Npopulation,J,delta_z,nonlinearity)**2
+    result = scipy.optimize.minimize_scalar(vel_sq) #,bracket=(-1,0,1))
+    assert(result['fun'] < 1e-10) # make sure we were successful
+    return result['x']
+    
+def zero_velocity_asymmetric_edge_Jmat(sigma_edge,Npopulation,J,delta_z,nonlinearity):
+    """
+    Return edge_Jmat interaction matrix corresponding to an asymmetric edge
+    that has zero velocity under the dynamics with given sigma_edge.
+    """
+    edge_shift = find_zero_velocity_asymmetric_edge_shift(sigma_edge,
+                                        Npopulation,J,delta_z,nonlinearity)
+    return asymmetric_edge_Jmat_with_shift(edge_shift,Npopulation,J,delta_z)
+
 class laplace_network:
     
     def __init__(self,Npopulation,J=1,kernel_width=2,boundary_input=100,
