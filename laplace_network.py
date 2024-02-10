@@ -88,11 +88,11 @@ def interpolated_state(rates_series,k=1):
 # define the shapes of asymmetric edges and bumps we want in order
 # to get exponential decay of individual neurons over time
 
-def asymmetricEdgeRates(n,t,delta_z=1,n_0=10,t_0=1):
+def asymmetric_edge_states(n,t,delta_z=1,n_0=10,t_0=1):
     return np.exp( -(t/t_0)*np.exp(-delta_z*(n-n_0)+np.log(np.log(2))) )
 
-def asymmetricBumpRates(n,t,delta_z=1,n_0=10,t_0=1):
-    return (t/t_0)*asymmetricEdgeRates(
+def asymmetric_bump_states(n,t,delta_z=1,n_0=10,t_0=1):
+    return (t/t_0)*asymmetric_edge_states(
                 n,t,delta_z=delta_z,n_0=n_0,t_0=t_0)*delta_z/np.exp(delta_z*(n-n_0))
 
 def asymmetric_edge_Jmat_with_shift(edge_shift,Npopulation,J,delta_z):
@@ -103,7 +103,7 @@ def asymmetric_edge_Jmat_with_shift(edge_shift,Npopulation,J,delta_z):
     Used by zero_velocity_asymmetric_edge_Jmat.
     """
     t_0 = 1 # this value shouldn't matter; just needs to be nonzero
-    kernel = [asymmetricBumpRates(Npopulation-10-n,t_0,
+    kernel = [asymmetric_bump_states(Npopulation-10-n,t_0,
                     delta_z=delta_z,n_0=(Npopulation-10)/2-edge_shift,t_0=t_0) for n in range(Npopulation-10+1)]
     return J*interaction_matrix_from_kernel(kernel,Npopulation)
     
@@ -114,7 +114,7 @@ def asymmetric_edge_one_step_velocity(edge_Jmat,sigma_edge,Npopulation,J,delta_z
     """
     t_0 = 1 # this value shouldn't matter; just needs to be nonzero
     n_0 = Npopulation/2 # this value shouldn't matter; just needs to be far from endpoints
-    edge_state = J*(2*asymmetricEdgeRates(np.arange(0,Npopulation),t_0,delta_z=delta_z,n_0=n_0,t_0=t_0)-1)
+    edge_state = J*(2*asymmetric_edge_states(np.arange(0,Npopulation),t_0,delta_z=delta_z,n_0=n_0,t_0=t_0)-1)
     edge_synaptic_out = nonlinearity(edge_state/sigma_edge)
     corresponding_steady_state = np.dot(edge_Jmat,edge_synaptic_out)
     steady_state_n_bar = np.sort(abs(find_edge_location(corresponding_steady_state)))[0]
