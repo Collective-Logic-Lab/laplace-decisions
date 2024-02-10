@@ -145,17 +145,21 @@ def zero_velocity_asymmetric_edge_Jmat(sigma_edge,Npopulation,J,delta_z,nonlinea
 
 class laplace_network:
     
-    def __init__(self,Npopulation,J=1,kernel_width=2,boundary_input=100,
+    def __init__(self,edge_Jmat,boundary_input=100,
         num_inputs=5,include_bump=True,J_edge_bump=1,J_bump_edge=1,
         nonlinearity=np.tanh,sigma=1):
         """
         Create 1-D line of units with nearest-neighbor interactions and fixed
         boundary conditions implemented by large fields at the ends.
         
-        Npopulation    : number of units per population
-                         (if including bump neurons, total number of neurons is 2N)
+        This function creates a network with arbitrary interaction matrix
+        edge_Jmat among edge neurons.  For specific preset forms of edge_Jmat,
+        see asymmetric_laplace_network and gaussian_laplace_network.
+        
+        edge_Jmat      : interaction matrix, of size (Npopulation x Npopulation)
+                         (if including bump neurons, total number of neurons is
+                         2Npopulation)
         J              : scale of interaction strength among nearby neighbors
-        kernel_width   : width of Gaussian kernel for interactions
         boundary_input : field setting boundary conditions (negative on left end
                          and positive on right end)
         num_inputs     : number of fixed input nodes at each end of the edge neurons
@@ -168,9 +172,8 @@ class laplace_network:
                          Default is np.tanh.  See simpleNeuralModel.
         sigma          : Scale of nonlinearity function.  See simpleNeuralModel.
         """
-        self.Npopulation = Npopulation
-        self.J = J
-        self.kernel_width = kernel_width
+        assert(len(edge_Jmat)==len(edge_Jmat[0])) # edge_Jmat should be square
+        self.Npopulation = len(edge_Jmat)
         self.boundary_input = boundary_input
         self.num_inputs = num_inputs
         self.include_bump = include_bump
@@ -178,25 +181,26 @@ class laplace_network:
         self.sigma = sigma
         
         # set interaction matrix for edge neurons -> edge neurons
-        self.edge_Jmat = J * gaussian_kernel_matrix(Npopulation,kernel_width)
+        self.edge_Jmat = edge_Jmat
         
         if include_bump:
             # set interaction matrix for bump neurons -> bump neurons
-            self.bump_Jmat = np.zeros((Npopulation,Npopulation))
+            self.bump_Jmat = np.zeros((self.Npopulation,self.Npopulation))
             
             # set interaction matrix for edge neurons -> bump neurons
-            self.edge_bump_Jmat = J_edge_bump * derivative_interaction_matrix(Npopulation)
+            self.edge_bump_Jmat = J_edge_bump * derivative_interaction_matrix(self.Npopulation)
             
             # set interaction matrix for bump neurons -> edge neurons
-            self.bump_edge_Jmat = np.diag(J_bump_edge * np.ones(Npopulation))
+            self.bump_edge_Jmat = np.diag(J_bump_edge * np.ones(self.Npopulation))
         
             # construct full interaction matrix
             self.Jmat = np.block([[self.edge_Jmat, self.bump_edge_Jmat],
                                   [self.edge_bump_Jmat, self.bump_Jmat]])
                                   
             # also store interaction matrix that does not include feedback from bump to edge
-            self.Jmat_no_feedback = np.block([[self.edge_Jmat, np.zeros((Npopulation,Npopulation))],
-                                              [self.edge_bump_Jmat, self.bump_Jmat]])
+            self.Jmat_no_feedback = np.block(
+                [[self.edge_Jmat, np.zeros((self.Npopulation,self.Npopulation))],
+                 [self.edge_bump_Jmat, self.bump_Jmat]])
         else:
             self.Jmat = self.edge_Jmat
             self.Jmat_no_feedback = self.edge_Jmat
@@ -304,7 +308,7 @@ class laplace_network:
         return fp
     
     def simulate_dynamics(self,initial_state,t_final,noise_var,
-        additional_input=None,seed=None,delta_t=0.001):
+        additional_input=None,seed=None,delta_t=0.01):
         """
         Use simpleNeuralModel.simpleNeuralDynamics to simulate the network's dynamics.
 
@@ -337,3 +341,61 @@ class laplace_network:
                                                       deltat=delta_t,
                                                       nonlinearity=self.nonlinearity,
                                                       sigma=self.sigma)
+
+class gaussian_laplace_network(laplace_network):
+
+    def __init__(self,Npopulation=100,kernel_width=2,J=1,**kwargs):
+        """
+        Create Laplace network with Gaussian interactions among edge neurons.
+        
+        Npopulation    : number of units per population
+                         (if including bump neurons, total number of neurons
+                         is 2*Npopulation)
+        kernel_width   : width of Gaussian kernel for interactions
+        
+        For other kwargs, see options for laplace_network.
+        """
+        self.kernel_width = kernel_width
+        self.J = J
+        edge_Jmat = J * gaussian_kernel_matrix(Npopulation,kernel_width)
+        
+        super().__init__(edge_Jmat,**kwargs)
+        
+    
+class asymmetric_laplace_network(laplace_network):
+
+    def __init__(self,Npopulation=100,J=2,sigma_edge=0.25,sigma_other=1,delta_z=0.25,
+        nonlinearity=np.tanh,**kwargs):
+        """
+        Create Laplace network with asymmetric interactions among edge neurons
+        designed to produce exponential decay of individual neurons over time
+        when combined with exponential decay of feedback over n.
+        
+        Npopulation    : number of units per population
+                         (if including bump neurons, total number of neurons
+                         is 2*Npopulation)
+        sigma_edge     : scale of nonlinearity for edge->edge synapses
+        sigma_other    : scale of nonlinearity for all other synapses
+        delta_z        : conversion unit from distance measured in number of
+                         neurons to the relevant output variable z
+        nonlinearity   : Function taking neural states to synaptic currents.
+                         Default is np.tanh.  See simpleNeuralModel.
+        
+        For other kwargs, see options for laplace_network.
+        """
+        
+        # set up sigma matrix
+        sigma_ones = np.ones([Npopulation,Npopulation])
+        sigma = np.block([[sigma_edge*sigma_ones, sigma_other*sigma_ones],
+                          [sigma_other*sigma_ones,sigma_other*sigma_ones]])
+                    
+        # set up edge_Jmat
+        edge_Jmat = zero_velocity_asymmetric_edge_Jmat(sigma_edge,
+                                                       Npopulation,
+                                                       J,
+                                                       delta_z,
+                                                       nonlinearity)
+        self.J = J
+        self.kernel_width = 2 # TO DO: This is used in find_edge_state.  Is it needed?
+        
+        super().__init__(edge_Jmat,sigma=sigma,nonlinearity=nonlinearity,**kwargs)
