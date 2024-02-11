@@ -16,6 +16,19 @@ from toolbox import defaultFigure
 defaultFigure.setDefaultParams()
 from laplace_network import find_edge_location
 
+# colors from coolors.co
+colors = {0: "#086788", # cerulean
+          1: "#07A0C3", # blue green
+          2: "#F0C808", # jonquil
+          3: "#DD1C1A", # rojo
+          4: "#BEB2C8", # thistle
+          5: "#6B2737", # wine
+          6: "#966B9D", # pomp and power
+          7: "#FF6663", # bittersweet
+          8: "#20BF55", # dark pastel green
+          9: "#440381", # indigo
+         }
+
 def nice_neuron_xlabels(Npopulation):
     labels=['' for i in range(Npopulation)]
     labeled_n = [0,int(Npopulation/2),Npopulation-1]
@@ -35,9 +48,13 @@ def translation_simulation_plot(net,states,
     
     # firing rate plot, edge neurons
     plt.subplot(4,1,1)
-    for t in times:
+    for time_index,t in enumerate(times):
         plt.plot(states.loc[t]['Neuron 0':'Neuron {}'.format(net.Npopulation-1)],
-                 '.-',label="$t$ = {}".format(int(t)),lw=1,ms=3)
+                 '.-',
+                 label="$t$ = {}".format(int(t)),
+                 lw=1,
+                 ms=3,
+                 color=colors[9-time_index])
     #plt.hlines(0,0,50,color='k',lw=0.5)
     #plt.xlabel('Neural unit')
     plt.ylabel('State,\nedge neurons')
@@ -49,10 +66,14 @@ def translation_simulation_plot(net,states,
     
     # firing rate plot, bump neurons
     plt.subplot(4,1,2)
-    for t in times:
+    for time_index,t in enumerate(times):
         plt.plot(
             states.loc[t]['Neuron {}'.format(net.Npopulation):'Neuron {}'.format(2*net.Npopulation-1)],
-                 '.-',label="$t$ = {}".format(t),lw=1,ms=3)
+                 '.-',
+                 label="$t$ = {}".format(t),
+                 lw=1,
+                 ms=3,
+                 color=colors[9-time_index])
     #plt.hlines(0,0,50,color='k',lw=0.5)
     #plt.xlabel('Neural unit')
     plt.ylabel('State,\nbump neurons')
@@ -64,7 +85,8 @@ def translation_simulation_plot(net,states,
     
     # interaction strength from bump to edge neurons
     plt.subplot(4,1,3)
-    plt.plot(-np.array(np.diag(net.bump_edge_Jmat)))
+    plt.plot(-np.array(np.diag(net.bump_edge_Jmat)),
+        color=colors[1])
     plt.ylabel('synaptic strength\nbump -> edge')
     #plt.xlabel('Neural unit')
     plt.yscale('log')
@@ -73,7 +95,7 @@ def translation_simulation_plot(net,states,
     
     # input from bump neurons to edge neurons
     plt.subplot(4,1,4)
-    for t in times:
+    for time_index,t in enumerate(times):
         if np.shape(net.sigma) == (net.Ntotal,net.Ntotal):
             # activities_t has shape (NtotalxNtotal)
             activities_t = np.tanh(np.tile(
@@ -99,7 +121,10 @@ def translation_simulation_plot(net,states,
             bump_to_edge_input = np.dot(bumpActivities,
                                         net.bump_edge_Jmat)
         plt.plot(bump_to_edge_input,'.-',
-                 label="t = {}".format(t),lw=1,ms=3)
+                 label="t = {}".format(t),
+                 lw=1,
+                 ms=3,
+                 color=colors[9-time_index])
     #plt.hlines(0,0,50,color='k',lw=0.5)
     plt.xlabel('Neural unit')
     plt.ylabel('Input from bump\nto edge neurons')
@@ -135,7 +160,7 @@ def time_rescaling_plot(states,n_0,t_0,delta_z,
     for neuron_index in neuron_indices:
         name = 'Neuron {}'.format(neuron_index)
         plt.plot(states[name],label=name,
-                 color='C{}'.format(neuron_index-n_0)) #color=str((neuron_index-n_0)/10))
+                 color=colors[neuron_index-n_0]) #color=str((neuron_index-n_0)/10))
     leg = plt.legend(loc=(2.4,-0.03))
     plt.xlabel('Time')
     plt.ylabel('Neural state')
@@ -152,7 +177,7 @@ def time_rescaling_plot(states,n_0,t_0,delta_z,
         times = states[name].index
         tau = t_0*np.exp((neuron_index-n_0)*delta_z)
         plt.plot(times/tau,states[name],label=name,
-                 color='C{}'.format(neuron_index-n_0)) #str((neuron_index-n_0)/10))
+                 color=colors[neuron_index-n_0]) #str((neuron_index-n_0)/10))
     
     #leg = plt.legend()
     plt.xlabel('Time/$\\tau_i$')
