@@ -396,6 +396,7 @@ class asymmetric_laplace_network(laplace_network):
                                                        delta_z,
                                                        nonlinearity)
         self.J = J
+        self.delta_z = delta_z
         self.kernel_width = 2 # TO DO: This is used in find_edge_state.  Is it needed?
         
         super().__init__(edge_Jmat,sigma=sigma,nonlinearity=nonlinearity,**kwargs)

@@ -39,6 +39,7 @@ def nice_neuron_xlabels(Npopulation):
 
 def translation_simulation_plot(net,states,
         pre_nonlinearity_states,
+        num_neurons_scale=30,
         n_0=None,t_0=None,
         state_min=None,state_max=None,
         input_min=-0.5,input_max=0.1):
@@ -55,7 +56,8 @@ def translation_simulation_plot(net,states,
     
     plt.figure(figsize=(6,9))
     minInput,maxInput = 0,4
-    minNeuron,maxNeuron = n_0-30, n_0+30
+    minNeuron = n_0-num_neurons_scale
+    maxNeuron = n_0+num_neurons_scale
     times = [t_0,t_0*2,t_0*4]
     
     # firing rate plot, edge neurons
@@ -163,10 +165,20 @@ def edge_location_plot(net,states,n_0,t_0,delta_z,skip=10):
 def time_rescaling_plot(states,n_0,t_0,delta_z,
         t_max=80,t_max_rescaled=8,
         state_min=-2.5,state_max=+2.5,
+        delta_n=1,num_n_to_plot=10,
         neuron_indices=None):
+    """
+    delta_n (1)         : indices of plotted neurons increment
+                          by delta_n (ignored if
+                          neuron_indices is specified)
+    num_n_to_plot (10)  : number of neurons to plot (ignored if
+                          neuron_indices is specified)
+    """
     
     if neuron_indices == None:
-        neuron_indices = range(n_0,n_0+10)
+        neuron_indices = range(int(n_0),
+                               int(n_0)+delta_n*num_n_to_plot,
+                               delta_n)
     
     plt.figure(figsize=(10,3))
     
