@@ -156,13 +156,17 @@ def translation_simulation_plot(net,states,
     plt.subplots_adjust(bottom=0.1,top=0.95,left=0.2,right=0.95)
 
 def edge_location_plot(net,states,n_0,t_0,delta_z,skip=10):
+    plt.figure(figsize=(4,3))
+    
     # plot edge location versus time
-    plt.plot(states.index[::skip],[np.sort(abs(find_edge_location(states.loc[i])))[0] for i in states.index[::skip]],'.',label='Simulation')
+    plt.plot(states.index[::skip],[np.sort(abs(find_edge_location(states.loc[i])))[0] for i in states.index[::skip]],'.',label='Simulation',
+        color='k')
     plt.plot(states.index,
              n_0+1./delta_z*np.log(states.index/t_0),
-             label='$n_0+ (\Delta z)^{-1}\log(t/t_0)$',lw=2)
-    plt.xlabel('Time $t$')
-    plt.ylabel('Edge location (neuron number)')
+             label='$n_0+ (\Delta z)^{-1}\log(t/t_0)$',lw=2,
+             color='crimson')
+    plt.xlabel('Time')
+    plt.ylabel('Edge location\n(neuron number)')
     leg = plt.legend()
     defaultFigure.makePretty(leg=leg)
     #plt.savefig('231117_self_sustained_edge_location_vs_time.pdf')
