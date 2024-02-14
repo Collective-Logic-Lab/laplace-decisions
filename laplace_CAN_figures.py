@@ -172,6 +172,7 @@ def edge_location_plot(net,states,n_0,t_0,delta_z,skip=10):
     #plt.savefig('231117_self_sustained_edge_location_vs_time.pdf')
     plt.axis(ymin=n_0-2)
     plt.xscale('log')
+    plt.subplots_adjust(left=0.21,right=0.95,bottom=0.2,top=0.95)
     
 def time_rescaling_plot(states,n_0,t_0,delta_z,
         t_max=80,t_max_rescaled=8,
