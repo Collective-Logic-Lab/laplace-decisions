@@ -29,11 +29,14 @@ colors = {0: "#086788", # cerulean
           9: "#440381", # indigo
          }
 
-def nice_neuron_xlabels(Npopulation):
+def nice_neuron_xlabels(Npopulation,labeled_n=None):
     labels=['' for i in range(Npopulation)]
-    labeled_n = [0,int(Npopulation/2),Npopulation-1]
+    if labeled_n == None:
+        labeled_n = [0,
+                     int(Npopulation/2),
+                     Npopulation-1]
     for n in labeled_n:
-        labels[n] = n
+        labels[int(n)] = int(n)
     plt.xticks(ticks=range(Npopulation),labels=labels)
     defaultFigure.makePretty()
 
@@ -72,7 +75,8 @@ def translation_simulation_plot(net,states,
     #plt.hlines(0,0,50,color='k',lw=0.5)
     #plt.xlabel('Neural unit')
     plt.ylabel('State,\nedge neurons')
-    nice_neuron_xlabels(net.Npopulation)
+    nice_neuron_xlabels(net.Npopulation,
+                        [minNeuron,n_0,maxNeuron])
     leg = plt.legend(framealpha=1)
     defaultFigure.makePretty(leg=leg)
     plt.axis(xmin=minNeuron,xmax=maxNeuron,
@@ -91,7 +95,8 @@ def translation_simulation_plot(net,states,
     #plt.hlines(0,0,50,color='k',lw=0.5)
     #plt.xlabel('Neural unit')
     plt.ylabel('State,\nbump neurons')
-    nice_neuron_xlabels(net.Npopulation)
+    nice_neuron_xlabels(net.Npopulation,
+                        [minNeuron,n_0,maxNeuron])
     #leg = plt.legend(framealpha=1)
     defaultFigure.makePretty()
     plt.axis(xmin=minNeuron,xmax=maxNeuron,
@@ -104,7 +109,8 @@ def translation_simulation_plot(net,states,
     plt.ylabel('synaptic strength\nbump -> edge')
     #plt.xlabel('Neural unit')
     plt.yscale('log')
-    nice_neuron_xlabels(net.Npopulation)
+    nice_neuron_xlabels(net.Npopulation,
+                        [minNeuron,n_0,maxNeuron])
     plt.axis(xmin=minNeuron,xmax=maxNeuron,)
     
     # input from bump neurons to edge neurons
@@ -142,7 +148,8 @@ def translation_simulation_plot(net,states,
     #plt.hlines(0,0,50,color='k',lw=0.5)
     plt.xlabel('Neural unit')
     plt.ylabel('Input from bump\nto edge neurons')
-    nice_neuron_xlabels(net.Npopulation)
+    nice_neuron_xlabels(net.Npopulation,
+                        [minNeuron,n_0,maxNeuron])
     plt.axis(xmin=minNeuron,xmax=maxNeuron,
         ymin=input_min,ymax=input_max)
     
