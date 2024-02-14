@@ -39,12 +39,17 @@ def nice_neuron_xlabels(Npopulation):
 
 def translation_simulation_plot(net,states,
         pre_nonlinearity_states,n_0,t_0,
-        state_min=-2.5,state_max=2.5,
+        state_min=None,state_max=None,
         input_min=-0.5,input_max=0.1):
     plt.figure(figsize=(6,9))
     minInput,maxInput = 0,4
     minNeuron,maxNeuron = n_0-30, n_0+30
     times = [t_0,t_0*2,t_0*4]
+    
+    if state_min == None:
+        state_min = -net.J - 0.5
+    if state_max == None:
+        state_max = net.J + 0.5
     
     # firing rate plot, edge neurons
     plt.subplot(4,1,1)
@@ -150,17 +155,21 @@ def edge_location_plot(net,states,n_0,t_0,delta_z,skip=10):
     
 def time_rescaling_plot(states,n_0,t_0,delta_z,
         t_max=80,t_max_rescaled=8,
-        state_min=-2.5,state_max=+2.5):
+        state_min=-2.5,state_max=+2.5,
+        neuron_indices=None):
+    
+    if neuron_indices == None:
+        neuron_indices = range(n_0,n_0+10)
+    
     plt.figure(figsize=(10,3))
     
     # plot state over time for particular neurons
     plt.subplot(1,2,1)
-    neuron_indices = range(n_0,n_0+10)
     
-    for neuron_index in neuron_indices:
+    for i,neuron_index in enumerate(neuron_indices):
         name = 'Neuron {}'.format(neuron_index)
         plt.plot(states[name],label=name,
-                 color=colors[neuron_index-n_0]) #color=str((neuron_index-n_0)/10))
+                 color=colors[i]) #color=str((neuron_index-n_0)/10))
     leg = plt.legend(loc=(2.4,-0.03))
     plt.xlabel('Time')
     plt.ylabel('Neural state')
@@ -171,13 +180,12 @@ def time_rescaling_plot(states,n_0,t_0,delta_z,
     
     # plot rate over time for particular neurons, rescaled in time
     plt.subplot(1,2,2)
-    neuron_indices = range(n_0,n_0+10)
-    for neuron_index in neuron_indices:
+    for i,neuron_index in enumerate(neuron_indices):
         name = 'Neuron {}'.format(neuron_index)
         times = states[name].index
         tau = t_0*np.exp((neuron_index-n_0)*delta_z)
         plt.plot(times/tau,states[name],label=name,
-                 color=colors[neuron_index-n_0]) #str((neuron_index-n_0)/10))
+                 color=colors[i]) #str((neuron_index-n_0)/10))
     
     #leg = plt.legend()
     plt.xlabel('Time/$\\tau_i$')
