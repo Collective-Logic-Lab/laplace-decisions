@@ -38,18 +38,25 @@ def nice_neuron_xlabels(Npopulation):
     defaultFigure.makePretty()
 
 def translation_simulation_plot(net,states,
-        pre_nonlinearity_states,n_0,t_0,
+        pre_nonlinearity_states,
+        n_0=None,t_0=None,
         state_min=None,state_max=None,
         input_min=-0.5,input_max=0.1):
-    plt.figure(figsize=(6,9))
-    minInput,maxInput = 0,4
-    minNeuron,maxNeuron = n_0-30, n_0+30
-    times = [t_0,t_0*2,t_0*4]
+    
+    if t_0 == None:
+        t_0 = states.index[0]
+    if n_0 == None:
+        n_0 = np.sort(abs(find_edge_location(pre_nonlinearity_states.loc[t_0])))[0]
     
     if state_min == None:
         state_min = -net.J - 0.5
     if state_max == None:
         state_max = net.J + 0.5
+    
+    plt.figure(figsize=(6,9))
+    minInput,maxInput = 0,4
+    minNeuron,maxNeuron = n_0-30, n_0+30
+    times = [t_0,t_0*2,t_0*4]
     
     # firing rate plot, edge neurons
     plt.subplot(4,1,1)
