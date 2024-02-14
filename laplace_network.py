@@ -134,13 +134,16 @@ def find_zero_velocity_asymmetric_edge_shift(sigma_edge,Npopulation,J,delta_z,no
     assert(result['fun'] < 1e-10) # make sure we were successful
     return result['x']
     
-def zero_velocity_asymmetric_edge_Jmat(sigma_edge,Npopulation,J,delta_z,nonlinearity):
+def zero_velocity_asymmetric_edge_Jmat(sigma_edge,Npopulation,J,delta_z,nonlinearity,
+    verbose=True):
     """
     Return edge_Jmat interaction matrix corresponding to an asymmetric edge
     that has zero velocity under the dynamics with given sigma_edge.
     """
     edge_shift = find_zero_velocity_asymmetric_edge_shift(sigma_edge,
                                         Npopulation,J,delta_z,nonlinearity)
+    if verbose:
+        print("zero_velocity_asymmetric_edge_Jmat: edge_shift = {}".format(edge_shift))
     return asymmetric_edge_Jmat_with_shift(edge_shift,Npopulation,J,delta_z)
 
 class laplace_network:
