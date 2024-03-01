@@ -45,7 +45,9 @@ def translation_simulation_plot(net,states,
         num_neurons_scale=30,
         n_0=None,t_0=None,
         state_min=None,state_max=None,
-        input_min=-0.5,input_max=0.1):
+        bump_state_min=None,bump_state_max=None,
+        input_min=-0.5,input_max=0.1,
+        plot_derivative=False):
     
     if t_0 == None:
         t_0 = states.index[0]
@@ -92,6 +94,12 @@ def translation_simulation_plot(net,states,
                  lw=1,
                  ms=3,
                  color=colors[9-time_index])
+        if plot_derivative:
+            # 2024/3/1 compare to actual discrete derivative of edge
+            edge_states = np.array(states.loc[t]['Neuron 0':'Neuron {}'.format(net.Npopulation-1)])
+            plt.plot(range(net.Npopulation-1),
+                     edge_states[1:] - edge_states[:-1],
+                     'k-',zorder=-10)
     #plt.hlines(0,0,50,color='k',lw=0.5)
     #plt.xlabel('Neural unit')
     plt.ylabel('State,\nbump neurons')
@@ -99,8 +107,11 @@ def translation_simulation_plot(net,states,
                         [minNeuron,n_0,maxNeuron])
     #leg = plt.legend(framealpha=1)
     defaultFigure.makePretty()
-    plt.axis(xmin=minNeuron,xmax=maxNeuron,
-             ymin=state_min,ymax=state_max)
+    plt.axis(xmin=minNeuron,xmax=maxNeuron)
+    if bump_state_min != None:
+        plt.axis(ymin=bump_state_min)
+    if bump_state_max != None:
+        plt.axis(ymax=bump_state_max)
     
     # interaction strength from bump to edge neurons
     plt.subplot(4,1,3)
