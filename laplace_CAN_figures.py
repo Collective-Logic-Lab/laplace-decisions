@@ -52,7 +52,7 @@ def translation_simulation_plot(net,states,
     if t_0 == None:
         t_0 = states.index[0]
     if n_0 == None:
-        n_0 = np.sort(abs(find_edge_location(pre_nonlinearity_states.loc[t_0])))[0]
+        n_0 = np.sort(find_edge_location(pre_nonlinearity_states.loc[t_0],net.Npopulation))[0]
     
     if state_min == None:
         state_min = -net.J - 0.5
@@ -115,7 +115,7 @@ def translation_simulation_plot(net,states,
     
     # interaction strength from bump to edge neurons
     plt.subplot(4,1,3)
-    plt.plot(-np.array(np.diag(net.bump_edge_Jmat)),
+    plt.plot(abs(np.array(np.diag(net.bump_edge_Jmat))),
         color=colors[1])
     plt.ylabel('synaptic strength\nbump -> edge')
     #plt.xlabel('Neural unit')
@@ -170,7 +170,7 @@ def edge_location_plot(net,states,n_0,t_0,delta_z,skip=10):
     plt.figure(figsize=(4,3))
     
     # plot edge location versus time
-    plt.plot(states.index[::skip],[np.sort(abs(find_edge_location(states.loc[i])))[0] for i in states.index[::skip]],'.',label='Simulation',
+    plt.plot(states.index[::skip],[np.sort(find_edge_location(states.loc[i],net.Npopulation))[0] for i in states.index[::skip]],'.',label='Simulation',
         color='k')
     plt.plot(states.index,
              n_0+1./delta_z*np.log(states.index/t_0),

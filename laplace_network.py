@@ -68,13 +68,32 @@ def interaction_matrix_from_kernel(discreteKernel,N,normed=True):
         mat = [ row/np.sum(row) for row in mat ]
     return np.array(mat)
 
-def find_edge_location(rates_series,k=1):
+def find_edge_location(rates_series,Npopulation=None,k=1,min_deriv=True):
     """
     Takes a pandas Series (or simple list) of rates or states along the 1D line of neurons.
-    Returns the (interpolated) location of the zero crossing.
+    Returns a list of possible (interpolated) locations of the zero crossing.
+    
+    Npopulation (None)          : If given, only search for zeros between 0 and Npopulation
+                                  (Useful for ignoring zeros in "bump" neurons)
+    min_deriv (True)            : If True, in the case of multiple zero crossings, returns
+                                  the one with smallest absolute derivative.  (Useful for
+                                  ignoring zeros from other spurious effects)
     """
+    if Npopulation is None:
+        Npopulation = np.inf
+    
+    # find roots, limited to those between 0 and Npopulation
     ppoly = interpolated_state(rates_series,k=k)
-    return ppoly.roots()
+    roots = [ r for r in ppoly.roots() if (r < Npopulation) and (r > 0) ]
+    
+    # optionally find root with minimum absolute derivative
+    if min_deriv:
+        abs_derivs = [ abs(ppoly.derivative(1)(r)) for r in roots ]
+        edge_loc_list = [roots[np.argmin(abs_derivs)]]
+    else:
+        edge_loc_list = roots
+        
+    return edge_loc_list
 
 def interpolated_state(rates_series,k=1):
     """
@@ -117,7 +136,7 @@ def asymmetric_edge_one_step_velocity(edge_Jmat,sigma_edge,Npopulation,J,delta_z
     edge_state = J*(2*asymmetric_edge_states(np.arange(0,Npopulation),t_0,delta_z=delta_z,n_0=n_0,t_0=t_0)-1)
     edge_synaptic_out = nonlinearity(edge_state/sigma_edge)
     corresponding_steady_state = np.dot(edge_Jmat,edge_synaptic_out)
-    steady_state_n_bar = np.sort(abs(find_edge_location(corresponding_steady_state)))[0]
+    steady_state_n_bar = np.sort(find_edge_location(corresponding_steady_state))[0]
     return steady_state_n_bar - n_0
     
 def find_zero_velocity_asymmetric_edge_shift(sigma_edge,Npopulation,J,delta_z,nonlinearity):
