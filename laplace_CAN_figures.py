@@ -47,7 +47,8 @@ def translation_simulation_plot(net,states,
         state_min=None,state_max=None,
         bump_state_min=None,bump_state_max=None,
         input_min=-0.5,input_max=0.1,
-        plot_derivative=False):
+        plot_derivative=False,
+        flip_n=False,include_feedback_plots=True):
     
     if t_0 == None:
         t_0 = states.index[0]
@@ -59,7 +60,13 @@ def translation_simulation_plot(net,states,
     if state_max == None:
         state_max = net.J + 0.5
     
-    plt.figure(figsize=(6,9))
+    if include_feedback_plots:
+        num_plots = 4
+        plt.figure(figsize=(6,9))
+    else:
+        num_plots = 2
+        plt.figure(figsize=(6,6))
+    
     minInput,maxInput = 0,4
     minNeuron = n_0-num_neurons_scale
     maxNeuron = n_0+num_neurons_scale
@@ -67,7 +74,7 @@ def translation_simulation_plot(net,states,
     times = [t_0,t_0+10,t_0+30]
     
     # firing rate plot, edge neurons
-    plt.subplot(4,1,1)
+    plt.subplot(num_plots,1,1)
     for time_index,t in enumerate(times):
         plt.plot(states.loc[t]['Neuron 0':'Neuron {}'.format(net.Npopulation-1)],
                  '.-',
@@ -82,11 +89,15 @@ def translation_simulation_plot(net,states,
                         [minNeuron,n_0,maxNeuron])
     leg = plt.legend(framealpha=1)
     defaultFigure.makePretty(leg=leg)
-    plt.axis(xmin=minNeuron,xmax=maxNeuron,
-        ymin=state_min,ymax=state_max)
+    if flip_n:
+        plt.axis(xmin=maxNeuron,xmax=minNeuron,
+            ymin=state_min,ymax=state_max)
+    else:
+        plt.axis(xmin=minNeuron,xmax=maxNeuron,
+            ymin=state_min,ymax=state_max)
     
     # firing rate plot, bump neurons
-    plt.subplot(4,1,2)
+    plt.subplot(num_plots,1,2)
     for time_index,t in enumerate(times):
         plt.plot(
             states.loc[t]['Neuron {}'.format(net.Npopulation):'Neuron {}'.format(2*net.Npopulation-1)],
@@ -108,62 +119,68 @@ def translation_simulation_plot(net,states,
                         [minNeuron,n_0,maxNeuron])
     #leg = plt.legend(framealpha=1)
     defaultFigure.makePretty()
-    plt.axis(xmin=minNeuron,xmax=maxNeuron)
+    if flip_n:
+        plt.axis(xmin=maxNeuron,xmax=minNeuron)
+    else:
+        plt.axis(xmin=minNeuron,xmax=maxNeuron)
     if bump_state_min != None:
         plt.axis(ymin=bump_state_min)
     if bump_state_max != None:
         plt.axis(ymax=bump_state_max)
     
-    # interaction strength from bump to edge neurons
-    plt.subplot(4,1,3)
-    plt.plot(abs(np.array(np.diag(net.bump_edge_Jmat))),
-        color=colors[1])
-    plt.ylabel('synaptic strength\nbump -> edge')
-    #plt.xlabel('Neural unit')
-    plt.yscale('log')
-    nice_neuron_xlabels(net.Npopulation,
-                        [minNeuron,n_0,maxNeuron])
-    plt.axis(xmin=minNeuron,xmax=maxNeuron,)
+    if include_feedback_plots:
     
-    # input from bump neurons to edge neurons
-    plt.subplot(4,1,4)
-    for time_index,t in enumerate(times):
-        if np.shape(net.sigma) == (net.Ntotal,net.Ntotal):
-            # activities_t has shape (NtotalxNtotal)
-            activities_t = np.tanh(np.tile(
-                pre_nonlinearity_states.loc[t],
-                (net.Ntotal,1))/net.sigma)
-            # bump_to_edge_activities
-            # has shape (NpopulationxNpopulation)
-            bump_to_edge_activities = \
-                activities_t[:net.Npopulation,
-                            net.Npopulation:2*net.Npopulation]
-            # bump_to_edge_input has shape (N)
-            bump_to_edge_input = np.sum(
-                net.bump_edge_Jmat*np.array(
-                    bump_to_edge_activities),axis=1)
-            bump_to_edge_input = pd.Series(bump_to_edge_input,
-                index=pre_nonlinearity_states.columns[:net.Npopulation])
-        else:
-            activities = np.tanh(
-                pre_nonlinearity_states/net.sigma)
-            
-            bumpActivities = activities.loc[t][
-                'Neuron {}'.format(net.Npopulation):'Neuron {}'.format(2*net.Npopulation-1)]
-            bump_to_edge_input = np.dot(bumpActivities,
-                                        net.bump_edge_Jmat)
-        plt.plot(bump_to_edge_input,'.-',
-                 label="t = {}".format(t),
-                 lw=1,
-                 ms=3,
-                 color=colors[9-time_index])
-    #plt.hlines(0,0,50,color='k',lw=0.5)
+        # interaction strength from bump to edge neurons
+        plt.subplot(num_plots,1,3)
+        plt.plot(abs(np.array(np.diag(net.bump_edge_Jmat))),
+            color=colors[1])
+        plt.ylabel('synaptic strength\nbump -> edge')
+        #plt.xlabel('Neural unit')
+        plt.yscale('log')
+        nice_neuron_xlabels(net.Npopulation,
+                            [minNeuron,n_0,maxNeuron])
+        plt.axis(xmin=minNeuron,xmax=maxNeuron,)
+        
+        # input from bump neurons to edge neurons
+        plt.subplot(num_plots,1,4)
+        for time_index,t in enumerate(times):
+            if np.shape(net.sigma) == (net.Ntotal,net.Ntotal):
+                # activities_t has shape (NtotalxNtotal)
+                activities_t = np.tanh(np.tile(
+                    pre_nonlinearity_states.loc[t],
+                    (net.Ntotal,1))/net.sigma)
+                # bump_to_edge_activities
+                # has shape (NpopulationxNpopulation)
+                bump_to_edge_activities = \
+                    activities_t[:net.Npopulation,
+                                net.Npopulation:2*net.Npopulation]
+                # bump_to_edge_input has shape (N)
+                bump_to_edge_input = np.sum(
+                    net.bump_edge_Jmat*np.array(
+                        bump_to_edge_activities),axis=1)
+                bump_to_edge_input = pd.Series(bump_to_edge_input,
+                    index=pre_nonlinearity_states.columns[:net.Npopulation])
+            else:
+                activities = np.tanh(
+                    pre_nonlinearity_states/net.sigma)
+                
+                bumpActivities = activities.loc[t][
+                    'Neuron {}'.format(net.Npopulation):'Neuron {}'.format(2*net.Npopulation-1)]
+                bump_to_edge_input = np.dot(bumpActivities,
+                                            net.bump_edge_Jmat)
+            plt.plot(bump_to_edge_input,'.-',
+                     label="t = {}".format(t),
+                     lw=1,
+                     ms=3,
+                     color=colors[9-time_index])
+        #plt.hlines(0,0,50,color='k',lw=0.5)
+        plt.ylabel('Input from bump\nto edge neurons')
+        nice_neuron_xlabels(net.Npopulation,
+                            [minNeuron,n_0,maxNeuron])
+        plt.axis(xmin=minNeuron,xmax=maxNeuron,
+            ymin=input_min,ymax=input_max)
+    
     plt.xlabel('Neural unit')
-    plt.ylabel('Input from bump\nto edge neurons')
-    nice_neuron_xlabels(net.Npopulation,
-                        [minNeuron,n_0,maxNeuron])
-    plt.axis(xmin=minNeuron,xmax=maxNeuron,
-        ymin=input_min,ymax=input_max)
     
     plt.subplots_adjust(bottom=0.1,top=0.95,left=0.2,right=0.95)
 
@@ -171,17 +188,19 @@ def edge_location_plot(net,states,n_0,t_0,delta_z,skip=10,logscale=False):
     plt.figure(figsize=(4,3))
     
     # plot edge location versus time
-    plt.plot(states.index[::skip],[np.sort(find_edge_location(states.loc[i],net.Npopulation))[0] for i in states.index[::skip]],'.',label='Simulation',
-        color='k')
+    plt.plot(states.index[::skip],[np.sort(find_edge_location(states.loc[i],net.Npopulation))[0] for i in states.index[::skip]],'-',label='Simulation',
+        color='darkorange')
     
     # plot desired edge location versus time from theory
     theory_data = n_0+1./delta_z*np.log(states.index/t_0)
     theory_str = '$n_0+ (\Delta z)^{-1}\log(t/t_0)$'
     plt.plot(states.index,
              theory_data,
+             'k',
              label=theory_str,
-             lw=2,
-             color='crimson')
+             zorder=-10,
+             lw=1,
+             ls=(0,(1,1)) )
              
     # add labels and adjust plot
     plt.xlabel('Time')
