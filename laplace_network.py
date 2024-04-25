@@ -136,7 +136,7 @@ def asymmetric_edge_one_step_velocity(edge_Jmat,sigma_edge,Npopulation,J,delta_z
     edge_state = J*(2*asymmetric_edge_states(np.arange(0,Npopulation),t_0,delta_z=delta_z,n_0=n_0,t_0=t_0)-1)
     edge_synaptic_out = nonlinearity(edge_state/sigma_edge)
     corresponding_steady_state = np.dot(edge_Jmat,edge_synaptic_out)
-    steady_state_n_bar = np.sort(find_edge_location(corresponding_steady_state))[0]
+    steady_state_n_bar = np.sort(find_edge_location(corresponding_steady_state,Npopulation))[0]
     return steady_state_n_bar - n_0
     
 def find_zero_velocity_asymmetric_edge_shift(sigma_edge,Npopulation,J,delta_z,nonlinearity):
@@ -294,7 +294,7 @@ class laplace_network:
             fp[int(center):self.Npopulation-fixed_end_width] = right_state
             
             # now interpolate the states around the initial edge and paste this in the new location
-            initial_actual_location = find_edge_location(fp_initial)[0]
+            initial_actual_location = find_edge_location(fp_initial,self.Npopulation)[0]
             shift = center - initial_actual_location
             fp_initial_spline = interpolated_state(fp_initial)
             # set up range of locations that will be overwritten
