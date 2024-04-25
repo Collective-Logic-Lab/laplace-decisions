@@ -63,7 +63,8 @@ def translation_simulation_plot(net,states,
     minInput,maxInput = 0,4
     minNeuron = n_0-num_neurons_scale
     maxNeuron = n_0+num_neurons_scale
-    times = [t_0,t_0*2,t_0*4]
+    #times = [t_0,t_0*2,t_0*4]
+    times = [t_0,t_0+10,t_0+30]
     
     # firing rate plot, edge neurons
     plt.subplot(4,1,1)
@@ -166,38 +167,51 @@ def translation_simulation_plot(net,states,
     
     plt.subplots_adjust(bottom=0.1,top=0.95,left=0.2,right=0.95)
 
-def edge_location_plot(net,states,n_0,t_0,delta_z,skip=10):
+def edge_location_plot(net,states,n_0,t_0,delta_z,skip=10,logscale=False):
     plt.figure(figsize=(4,3))
     
     # plot edge location versus time
     plt.plot(states.index[::skip],[np.sort(find_edge_location(states.loc[i],net.Npopulation))[0] for i in states.index[::skip]],'.',label='Simulation',
         color='k')
+    
+    # plot desired edge location versus time from theory
+    theory_data = n_0+1./delta_z*np.log(states.index/t_0)
+    theory_str = '$n_0+ (\Delta z)^{-1}\log(t/t_0)$'
     plt.plot(states.index,
-             n_0+1./delta_z*np.log(states.index/t_0),
-             label='$n_0+ (\Delta z)^{-1}\log(t/t_0)$',lw=2,
+             theory_data,
+             label=theory_str,
+             lw=2,
              color='crimson')
+             
+    # add labels and adjust plot
     plt.xlabel('Time')
     plt.ylabel('Edge location\n(neuron number)')
     leg = plt.legend()
     defaultFigure.makePretty(leg=leg)
     #plt.savefig('231117_self_sustained_edge_location_vs_time.pdf')
     plt.axis(ymin=n_0-2)
-    plt.xscale('log')
+    if logscale:
+        plt.xscale('log')
     plt.subplots_adjust(left=0.21,right=0.95,bottom=0.2,top=0.95)
     
 def time_rescaling_plot(states,n_0,t_0,delta_z,
-        t_max=80,t_max_rescaled=8,
+        t_max_rescaled=8,
         state_min=-2.5,state_max=+2.5,
         delta_n=1,num_n_to_plot=10,
-        neuron_indices=None):
+        neuron_indices=None,
+        sim_type='past'):
     """
     delta_n (1)         : indices of plotted neurons increment
                           by delta_n (ignored if
                           neuron_indices is specified)
+                          (sign is flipped if sim_type='future')
     num_n_to_plot (10)  : number of neurons to plot (ignored if
                           neuron_indices is specified)
     """
     
+    if sim_type=='future':
+        delta_n = -delta_n
+        
     if neuron_indices == None:
         neuron_indices = range(int(n_0),
                                int(n_0)+delta_n*num_n_to_plot,
