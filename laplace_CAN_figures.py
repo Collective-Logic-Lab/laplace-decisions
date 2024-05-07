@@ -48,7 +48,8 @@ def translation_simulation_plot(net,states,
         bump_state_min=None,bump_state_max=None,
         input_min=-0.5,input_max=0.1,
         plot_derivative=False,
-        flip_n=False,include_feedback_plots=True):
+        flip_n=False,include_feedback_plots=True,
+        colors=[colors[9-i] for i in range(10)]):
     
     if t_0 == None:
         t_0 = states.index[0]
@@ -71,7 +72,7 @@ def translation_simulation_plot(net,states,
     minNeuron = n_0-num_neurons_scale
     maxNeuron = n_0+num_neurons_scale
     #times = [t_0,t_0*2,t_0*4]
-    times = [t_0,t_0+10,t_0+30]
+    times = [t_0,t_0+25,t_0+50,t_0+75]
     
     # firing rate plot, edge neurons
     plt.subplot(num_plots,1,1)
@@ -81,10 +82,10 @@ def translation_simulation_plot(net,states,
                  label="$t$ = {}".format(int(t)),
                  lw=1,
                  ms=3,
-                 color=colors[9-time_index])
+                 color=colors[time_index])
     #plt.hlines(0,0,50,color='k',lw=0.5)
     #plt.xlabel('Neural unit')
-    plt.ylabel('State,\nedge neurons')
+    plt.ylabel('Neural state $x$')
     nice_neuron_xlabels(net.Npopulation,
                         [minNeuron,n_0,maxNeuron])
     leg = plt.legend(framealpha=1)
@@ -105,7 +106,7 @@ def translation_simulation_plot(net,states,
                  label="$t$ = {}".format(t),
                  lw=1,
                  ms=3,
-                 color=colors[9-time_index])
+                 color=colors[time_index])
         if plot_derivative:
             # 2024/3/1 compare to actual discrete derivative of edge
             edge_states = np.array(states.loc[t]['Neuron 0':'Neuron {}'.format(net.Npopulation-1)])
@@ -114,7 +115,7 @@ def translation_simulation_plot(net,states,
                      'k-',zorder=-10)
     #plt.hlines(0,0,50,color='k',lw=0.5)
     #plt.xlabel('Neural unit')
-    plt.ylabel('State,\nbump neurons')
+    plt.ylabel('Neural state $y$')
     nice_neuron_xlabels(net.Npopulation,
                         [minNeuron,n_0,maxNeuron])
     #leg = plt.legend(framealpha=1)
@@ -172,7 +173,7 @@ def translation_simulation_plot(net,states,
                      label="t = {}".format(t),
                      lw=1,
                      ms=3,
-                     color=colors[9-time_index])
+                     color=colors[time_index])
         #plt.hlines(0,0,50,color='k',lw=0.5)
         plt.ylabel('Input from bump\nto edge neurons')
         nice_neuron_xlabels(net.Npopulation,
