@@ -233,6 +233,7 @@ def time_rescaling_plot(states,n_0,t_0,delta_z,
     
     if sim_type=='future':
         delta_n = -delta_n
+        t_max_rescaled = -t_max_rescaled
         
     if neuron_indices == None:
         neuron_indices = range(int(n_0),
@@ -261,7 +262,7 @@ def time_rescaling_plot(states,n_0,t_0,delta_z,
     for i,neuron_index in enumerate(neuron_indices):
         name = 'Neuron {}'.format(neuron_index)
         times = states[name].index
-        tau = t_0*np.exp((neuron_index-n_0)*delta_z)
+        tau = abs(t_0)*np.exp((neuron_index-n_0)*delta_z)
         plt.plot(times/tau,states[name],label=name,
                  color=colors[i]) #str((neuron_index-n_0)/10))
     
@@ -269,7 +270,8 @@ def time_rescaling_plot(states,n_0,t_0,delta_z,
     plt.xlabel('Time/$\\tau_i$')
     plt.ylabel('Neural state')
     plt.axis(ymin=state_min,ymax=state_max,
-        xmin=0,xmax=t_max_rescaled)
+             xmin=min(0,t_max_rescaled),
+             xmax=max(0,t_max_rescaled))
     plt.subplots_adjust(left=0.15,right=0.95)
     defaultFigure.makePretty(leg=leg)
     #plt.yscale('log')
