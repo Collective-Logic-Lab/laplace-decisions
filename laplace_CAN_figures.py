@@ -140,7 +140,10 @@ def translation_simulation_plot(net,states,
         plt.yscale('log')
         nice_neuron_xlabels(net.Npopulation,
                             [minNeuron,n_0,maxNeuron])
-        plt.axis(xmin=minNeuron,xmax=maxNeuron,)
+        if flip_n:
+            plt.axis(xmin=maxNeuron,xmax=minNeuron)
+        else:
+            plt.axis(xmin=minNeuron,xmax=maxNeuron)
         
         # input from bump neurons to edge neurons
         plt.subplot(num_plots,1,4)
@@ -178,8 +181,11 @@ def translation_simulation_plot(net,states,
         plt.ylabel('Input from bump\nto edge neurons')
         nice_neuron_xlabels(net.Npopulation,
                             [minNeuron,n_0,maxNeuron])
-        plt.axis(xmin=minNeuron,xmax=maxNeuron,
-            ymin=input_min,ymax=input_max)
+        if flip_n:
+            plt.axis(xmin=maxNeuron,xmax=minNeuron)
+        else:
+            plt.axis(xmin=minNeuron,xmax=maxNeuron)
+        plt.axis(ymin=input_min,ymax=input_max)
     
     plt.xlabel('Neural unit')
     
