@@ -46,6 +46,7 @@ def translation_simulation_plot(net,states,
         n_0=None,t_0=None,
         state_min=None,state_max=None,
         bump_state_min=None,bump_state_max=None,
+        v_min=1e-2,v_max=50,
         input_min=-0.5,input_max=0.1,
         plot_derivative=False,
         flip_n=False,include_feedback_plots=True,
@@ -83,8 +84,6 @@ def translation_simulation_plot(net,states,
                  lw=1,
                  ms=3,
                  color=colors[time_index])
-    #plt.hlines(0,0,50,color='k',lw=0.5)
-    #plt.xlabel('Neural unit')
     plt.ylabel('Neural state $x$')
     nice_neuron_xlabels(net.Npopulation,
                         [minNeuron,n_0,maxNeuron])
@@ -113,8 +112,6 @@ def translation_simulation_plot(net,states,
             plt.plot(range(net.Npopulation-1),
                      edge_states[1:] - edge_states[:-1],
                      'k-',zorder=-10)
-    #plt.hlines(0,0,50,color='k',lw=0.5)
-    #plt.xlabel('Neural unit')
     plt.ylabel('Neural state $y$')
     nice_neuron_xlabels(net.Npopulation,
                         [minNeuron,n_0,maxNeuron])
@@ -135,8 +132,7 @@ def translation_simulation_plot(net,states,
         plt.subplot(num_plots,1,3)
         plt.plot(abs(np.array(np.diag(net.bump_edge_Jmat))),
             color=colors[1])
-        plt.ylabel('synaptic strength\nbump -> edge')
-        #plt.xlabel('Neural unit')
+        plt.ylabel('Feedback\nstrength $v$')
         plt.yscale('log')
         nice_neuron_xlabels(net.Npopulation,
                             [minNeuron,n_0,maxNeuron])
@@ -144,6 +140,7 @@ def translation_simulation_plot(net,states,
             plt.axis(xmin=maxNeuron,xmax=minNeuron)
         else:
             plt.axis(xmin=minNeuron,xmax=maxNeuron)
+        plt.axis(ymin=v_min,ymax=v_max)
         
         # input from bump neurons to edge neurons
         plt.subplot(num_plots,1,4)
@@ -177,8 +174,7 @@ def translation_simulation_plot(net,states,
                      lw=1,
                      ms=3,
                      color=colors[time_index])
-        #plt.hlines(0,0,50,color='k',lw=0.5)
-        plt.ylabel('Input from bump\nto edge neurons')
+        plt.ylabel("Feedback\n$\sum w_f g(y)$")
         nice_neuron_xlabels(net.Npopulation,
                             [minNeuron,n_0,maxNeuron])
         if flip_n:
