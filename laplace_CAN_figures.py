@@ -84,7 +84,7 @@ def translation_simulation_plot(net,states,
                  lw=1,
                  ms=3,
                  color=colors[time_index])
-    plt.ylabel('Neural state $x$')
+    plt.ylabel('Neural state $x(n)$')
     nice_neuron_xlabels(net.Npopulation,
                         [minNeuron,n_0,maxNeuron])
     leg = plt.legend(framealpha=1)
@@ -112,7 +112,7 @@ def translation_simulation_plot(net,states,
             plt.plot(range(net.Npopulation-1),
                      edge_states[1:] - edge_states[:-1],
                      'k-',zorder=-10)
-    plt.ylabel('Neural state $y$')
+    plt.ylabel('Neural state $y(n)$')
     nice_neuron_xlabels(net.Npopulation,
                         [minNeuron,n_0,maxNeuron])
     #leg = plt.legend(framealpha=1)
@@ -132,7 +132,7 @@ def translation_simulation_plot(net,states,
         plt.subplot(num_plots,1,3)
         plt.plot(abs(np.array(np.diag(net.bump_edge_Jmat))),
             color=colors[1])
-        plt.ylabel('Feedback\nstrength $v$')
+        plt.ylabel('Feedback\nstrength $v(n)$')
         plt.yscale('log')
         nice_neuron_xlabels(net.Npopulation,
                             [minNeuron,n_0,maxNeuron])
@@ -183,7 +183,7 @@ def translation_simulation_plot(net,states,
             plt.axis(xmin=minNeuron,xmax=maxNeuron)
         plt.axis(ymin=input_min,ymax=input_max)
     
-    plt.xlabel('Neural unit')
+    plt.xlabel('Neural unit, $n$')
     
     plt.subplots_adjust(bottom=0.1,top=0.95,left=0.2,right=0.95)
 
@@ -207,7 +207,7 @@ def edge_location_plot(net,states,n_0,t_0,delta_z,skip=10,logscale=False):
              
     # add labels and adjust plot
     plt.xlabel('Time')
-    plt.ylabel('Edge location\n(neuron number)')
+    plt.ylabel('Edge location, $\\bar n$')
     leg = plt.legend()
     defaultFigure.makePretty(leg=leg)
     #plt.savefig('231117_self_sustained_edge_location_vs_time.pdf')
@@ -251,7 +251,7 @@ def time_rescaling_plot(states,n_0,t_0,delta_z,
                  color=colors[i]) #color=str((neuron_index-n_0)/10))
     leg = plt.legend(loc=(2.4,-0.03))
     plt.xlabel('Time')
-    plt.ylabel('Neural state')
+    plt.ylabel('Neural state $x$')
     plt.axis(ymin=state_min,ymax=state_max)
     plt.subplots_adjust(left=0.15,right=0.95)
     defaultFigure.makePretty(leg=leg)
@@ -268,7 +268,7 @@ def time_rescaling_plot(states,n_0,t_0,delta_z,
     
     #leg = plt.legend()
     plt.xlabel('Time/$\\tau_i$')
-    plt.ylabel('Neural state')
+    plt.ylabel('Neural state $x$')
     plt.axis(ymin=state_min,ymax=state_max,
              xmin=min(0,t_max_rescaled),
              xmax=max(0,t_max_rescaled))
