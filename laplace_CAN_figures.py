@@ -216,13 +216,14 @@ def edge_location_plot(net,states,n_0,t_0,delta_z,skip=10,logscale=False):
         plt.xscale('log')
     plt.subplots_adjust(left=0.21,right=0.95,bottom=0.2,top=0.95)
     
-def time_rescaling_plot(states,n_0,t_0,delta_z,
+def time_rescaling_plot(states,n_0,t_0,delta_z,x_max,
         t_max_rescaled=8,
         state_min=-2.5,state_max=+2.5,
         delta_n=1,num_n_to_plot=10,
         neuron_indices=None,
         sim_type='past'):
     """
+    x_max               : used to convert neural states to F(s)
     delta_n (1)         : indices of plotted neurons increment
                           by delta_n (ignored if
                           neuron_indices is specified)
@@ -255,16 +256,34 @@ def time_rescaling_plot(states,n_0,t_0,delta_z,
     plt.axis(ymin=state_min,ymax=state_max)
     plt.subplots_adjust(left=0.15,right=0.95)
     defaultFigure.makePretty(leg=leg)
-    #plt.savefig('231018_firing_rate_vs_time.pdf')
     
     # plot rate over time for particular neurons, rescaled in time
-    plt.subplot(1,2,2)
+    ax = plt.subplot(1,2,2)
     for i,neuron_index in enumerate(neuron_indices):
         name = 'Neuron {}'.format(neuron_index)
         times = states[name].index
         tau = abs(t_0)*np.exp((neuron_index-n_0)*delta_z)
         plt.plot(times/tau,states[name],label=name,
                  color=colors[i]) #str((neuron_index-n_0)/10))
+    
+    # plot inset using log axis
+    if sim_type == 'future': # inset on upper left
+        ax_inset = ax.inset_axes([0.15,0.45,0.5,0.5])
+    elif sim_type == 'past': # inset on upper right
+        ax_inset = ax.inset_axes([0.45,0.45,0.5,0.5])
+    for i,neuron_index in enumerate(neuron_indices):
+        name = 'Neuron {}'.format(neuron_index)
+        ax_inset.plot(0.5*(states[name]/x_max + 1),label=name,
+                 color=colors[i],lw=0.75)
+        ax_inset.set_yscale('log')
+    # no tick labels on inset
+    ax_inset.set_xticklabels([])
+    ax_inset.set_yticklabels([])
+    ax_inset.axis(ymin=1e-2)
+    ax_inset.set_xlabel('Time')
+    ax_inset.set_ylabel('F')
+    ax_inset.spines[['right', 'top']].set_visible(False)
+    defaultFigure.makePretty(ax=ax_inset)
     
     #leg = plt.legend()
     plt.xlabel('Time/$\\tau_i$')
