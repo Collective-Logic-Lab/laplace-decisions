@@ -262,8 +262,8 @@ def time_rescaling_plot(states,n_0,t_0,delta_z,x_max,
     for i,neuron_index in enumerate(neuron_indices):
         name = 'Neuron {}'.format(neuron_index)
         times = states[name].index
-        tau = abs(t_0)*np.exp((neuron_index-n_0)*delta_z)
-        plt.plot(times/tau,states[name],label=name,
+        s = abs(t_0)*np.exp((neuron_index-n_0)*delta_z)
+        plt.plot(times/s,states[name],label=name,
                  color=colors[i]) #str((neuron_index-n_0)/10))
     
     # plot inset using log axis
@@ -286,7 +286,7 @@ def time_rescaling_plot(states,n_0,t_0,delta_z,x_max,
     defaultFigure.makePretty(ax=ax_inset)
     
     #leg = plt.legend()
-    plt.xlabel('Time/$\\tau_i$')
+    plt.xlabel('Time/$s_i$')
     plt.ylabel('Neural state $x$')
     plt.axis(ymin=state_min,ymax=state_max,
              xmin=min(0,t_max_rescaled),
