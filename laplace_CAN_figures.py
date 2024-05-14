@@ -80,14 +80,14 @@ def translation_simulation_plot(net,states,
     for time_index,t in enumerate(times):
         plt.plot(states.loc[t]['Neuron 0':'Neuron {}'.format(net.Npopulation-1)],
                  '.-',
-                 label="$t$ = {}".format(int(t)),
+                 label="{}".format(int(t)),
                  lw=1,
                  ms=3,
                  color=colors[time_index])
     plt.ylabel('Neural state $x(n)$')
     nice_neuron_xlabels(net.Npopulation,
                         [minNeuron,n_0,maxNeuron])
-    leg = plt.legend(framealpha=1)
+    leg = plt.legend(title='$t - \\tau$',framealpha=1)
     defaultFigure.makePretty(leg=leg)
     if flip_n:
         plt.axis(xmin=maxNeuron,xmax=minNeuron,
@@ -196,7 +196,7 @@ def edge_location_plot(net,states,n_0,t_0,delta_z,skip=10,logscale=False):
     
     # plot desired edge location versus time from theory
     theory_data = n_0+1./delta_z*np.log(states.index/t_0)
-    theory_str = '$n_0+ (\Delta z)^{-1}\log(t/t_0)$'
+    theory_str = '$n_0+ \log_a(t/t_0)$'
     plt.plot(states.index,
              theory_data,
              'k',
