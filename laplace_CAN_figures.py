@@ -210,8 +210,6 @@ def edge_location_plot(net,states,n_0,t_0,delta_z,skip=10,logscale=False):
     plt.ylabel('Edge location, $\\bar n$')
     leg = plt.legend()
     defaultFigure.makePretty(leg=leg)
-    #plt.savefig('231117_self_sustained_edge_location_vs_time.pdf')
-    plt.axis(ymin=n_0-2)
     if logscale:
         plt.xscale('log')
     plt.subplots_adjust(left=0.21,right=0.95,bottom=0.2,top=0.95)
@@ -221,7 +219,8 @@ def time_rescaling_plot(states,n_0,t_0,delta_z,x_max,
         state_min=-2.5,state_max=+2.5,
         delta_n=1,num_n_to_plot=10,
         neuron_indices=None,
-        sim_type='past'):
+        sim_type='past',
+        plot_inset=True):
     """
     x_max               : used to convert neural states to F(s)
     delta_n (1)         : indices of plotted neurons increment
@@ -266,26 +265,26 @@ def time_rescaling_plot(states,n_0,t_0,delta_z,x_max,
         plt.plot(times/s,states[name],label=name,
                  color=colors[i]) #str((neuron_index-n_0)/10))
     
-    # plot inset using log axis
-    if sim_type == 'future': # inset on upper left
-        ax_inset = ax.inset_axes([0.15,0.45,0.5,0.5])
-    elif sim_type == 'past': # inset on upper right
-        ax_inset = ax.inset_axes([0.45,0.45,0.5,0.5])
-    for i,neuron_index in enumerate(neuron_indices):
-        name = 'Neuron {}'.format(neuron_index)
-        ax_inset.plot(0.5*(states[name]/x_max + 1),label=name,
-                 color=colors[i],lw=0.75)
-        ax_inset.set_yscale('log')
-    # no tick labels on inset
-    ax_inset.set_xticklabels([])
-    ax_inset.set_yticklabels([])
-    ax_inset.axis(ymin=1e-2)
-    ax_inset.set_xlabel('Time')
-    ax_inset.set_ylabel('F')
-    ax_inset.spines[['right', 'top']].set_visible(False)
-    defaultFigure.makePretty(ax=ax_inset)
+    if plot_inset:
+        # plot inset using log axis
+        if sim_type == 'future': # inset on upper left
+            ax_inset = ax.inset_axes([0.15,0.45,0.5,0.5])
+        elif sim_type == 'past': # inset on upper right
+            ax_inset = ax.inset_axes([0.45,0.45,0.5,0.5])
+        for i,neuron_index in enumerate(neuron_indices):
+            name = 'Neuron {}'.format(neuron_index)
+            ax_inset.plot(0.5*(states[name]/x_max + 1),label=name,
+                     color=colors[i],lw=0.75)
+            ax_inset.set_yscale('log')
+        # no tick labels on inset
+        ax_inset.set_xticklabels([])
+        ax_inset.set_yticklabels([])
+        ax_inset.axis(ymin=1e-2)
+        ax_inset.set_xlabel('Time')
+        ax_inset.set_ylabel('F')
+        ax_inset.spines[['right', 'top']].set_visible(False)
+        defaultFigure.makePretty(ax=ax_inset)
     
-    #leg = plt.legend()
     plt.xlabel('Time/$s_i$')
     plt.ylabel('Neural state $x$')
     plt.axis(ymin=state_min,ymax=state_max,
