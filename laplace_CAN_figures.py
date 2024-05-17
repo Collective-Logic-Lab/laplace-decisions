@@ -74,7 +74,7 @@ def translation_simulation_plot(net,states,
     maxNeuron = n_0+num_neurons_scale
     #times = [t_0,t_0*2,t_0*4]
     #times = [t_0,t_0+25,t_0+50,t_0+75]
-    times = [t_0,t_0+100,t_0+200,t_0+300]
+    times = [t_0,t_0+50,t_0+100,t_0+150]
     
     # firing rate plot, edge neurons
     plt.subplot(num_plots,1,1)
