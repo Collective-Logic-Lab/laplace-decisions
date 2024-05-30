@@ -207,7 +207,7 @@ def edge_location_plot(net,states,n_0,t_0,delta_z,skip=10,logscale=False):
              ls=(0,(1,1)) )
              
     # add labels and adjust plot
-    plt.xlabel('Time')
+    plt.xlabel('$t$')
     plt.ylabel('Edge location, $\\bar n$')
     leg = plt.legend()
     defaultFigure.makePretty(leg=leg)
@@ -251,7 +251,7 @@ def time_rescaling_plot(states,n_0,t_0,delta_z,x_max,
         plt.plot(states[name],label=name,
                  color=colors[i]) #color=str((neuron_index-n_0)/10))
     leg = plt.legend(loc=(2.4,-0.03))
-    plt.xlabel('Time')
+    plt.xlabel('$t$')
     plt.ylabel('Neural state $x$')
     plt.axis(ymin=state_min,ymax=state_max)
     plt.subplots_adjust(left=0.15,right=0.95)
@@ -262,6 +262,7 @@ def time_rescaling_plot(states,n_0,t_0,delta_z,x_max,
     for i,neuron_index in enumerate(neuron_indices):
         name = 'Neuron {}'.format(neuron_index)
         times = states[name].index
+        # (s here is 1/s in the paper)
         s = abs(t_0)*np.exp((neuron_index-n_0)*delta_z)
         plt.plot(times/s,states[name],label=name,
                  color=colors[i]) #str((neuron_index-n_0)/10))
@@ -281,12 +282,12 @@ def time_rescaling_plot(states,n_0,t_0,delta_z,x_max,
         ax_inset.set_xticklabels([])
         ax_inset.set_yticklabels([])
         ax_inset.axis(ymin=1e-2)
-        ax_inset.set_xlabel('Time')
+        ax_inset.set_xlabel('$t$')
         ax_inset.set_ylabel('F')
         ax_inset.spines[['right', 'top']].set_visible(False)
         defaultFigure.makePretty(ax=ax_inset)
     
-    plt.xlabel('Time/$s_i$')
+    plt.xlabel('$s(n)\\,t$')
     plt.ylabel('Neural state $x$')
     plt.axis(ymin=state_min,ymax=state_max,
              xmin=min(0,t_max_rescaled),
