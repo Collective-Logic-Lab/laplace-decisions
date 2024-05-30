@@ -133,7 +133,7 @@ def translation_simulation_plot(net,states,
         plt.subplot(num_plots,1,3)
         plt.plot(abs(np.array(np.diag(net.bump_edge_Jmat))),
             color=colors[1])
-        plt.ylabel('Feedback\nstrength $v(n)$')
+        plt.ylabel('Feedback\nstrength $|\sigma_g v(n)|$')
         plt.yscale('log')
         nice_neuron_xlabels(net.Npopulation,
                             [minNeuron,n_0,maxNeuron])
